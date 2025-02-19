@@ -1,0 +1,12 @@
+# WordPress core files
+/wp-content/
+/wp-admin/
+/wp-includes/
+/wp-config.php
+
+# Plugin-specific ignores
+node_modules/
+vendor/
+*.log
+*.DS_Store
+*.env
