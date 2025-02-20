@@ -107,21 +107,24 @@ class Property_Meta {
 
                 switch ( $field['type'] ) {
                     case 'gallery':
-                        $gallery_ids = explode(',', $value);
+                        $gallery_ids = !empty( $value ) ? explode( ',', $value ) : [];
                         echo '<div id="property-gallery-container">';
-                        if (!empty($gallery_ids)) {
-                            foreach ($gallery_ids as $image_id) {
-                                $image_url = wp_get_attachment_image_url($image_id, 'thumbnail');
-                                echo "<div class='gallery-image' data-id='{$image_id}'>
-                                        <img src='{$image_url}' />
-                                        <button type='button' class='remove-image'>×</button>
-                                      </div>";
+                            foreach ( $gallery_ids as $image_id ) {
+                                $image_id = intval( $image_id );
+                                if ( $image_id > 0 ) {
+                                    $image_url = wp_get_attachment_image_url( $image_id, 'thumbnail' );
+                                    if ( $image_url ) {
+                                        echo "<div class='gallery-image' data-id='{$image_id}'>
+                                                <img src='{$image_url}' />
+                                                <button type='button' class='remove-image'>×</button>
+                                            </div>";
+                                    }
+                                }
                             }
-                        }
                         echo '</div>';
                         echo "<input type='hidden' id='property_gallery' name='property_gallery' value='" . esc_attr($value) . "' />";
                         echo '<button type="button" id="add-property-gallery" class="button">Add Gallery Images</button>';
-                        break;                    
+                        break;
                     case 'text':
                     case 'number':
                     case 'url':
@@ -159,8 +162,15 @@ class Property_Meta {
 
         if ( isset( $_POST['property_gallery'] ) ) {
             $gallery_ids = array_filter( explode( ',', sanitize_text_field( $_POST['property_gallery'] ) ) );
-            update_post_meta( $post_id, '_property_gallery', $gallery_ids );
-        }        
+            
+            if ( !empty( $gallery_ids ) ) {
+                update_post_meta( $post_id, '_property_gallery', implode( ',', $gallery_ids ) );
+            } else {
+                delete_post_meta( $post_id, '_property_gallery' );
+            }
+        } else {
+            delete_post_meta( $post_id, '_property_gallery' );
+        }
 
         if ( defined( 'DOING_AUTOSAVE' ) && DOING_AUTOSAVE ) {
             return;

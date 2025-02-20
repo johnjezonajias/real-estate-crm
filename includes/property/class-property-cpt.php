@@ -22,6 +22,7 @@ class Property_CPT {
         ];
 
         $args = [
+            'labels'             => $labels,
             'label'              => __( 'Properties', 'real-estate-crm' ),
             'public'             => true,
             'supports'           => ['title', 'thumbnail', 'custom-fields'],

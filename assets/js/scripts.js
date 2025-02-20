@@ -1,53 +1,66 @@
 jQuery(document).ready(function ($) {
-    var frame;
+    const PropertyGallery = {
+        frame: null,
 
-    $('#add-property-gallery').click(function (e) {
-        e.preventDefault();
+        init: function () {
+            this.bindEvents();
+        },
 
-        if (frame) {
-            frame.open();
-            return;
-        }
+        bindEvents: function () {
+            $('#add-property-gallery').on('click', this.openMediaLibrary.bind(this));
+            $(document).on('click', '.remove-image', this.removeImage);
+        },
 
-        frame = wp.media({
-            title: 'Select Images',
-            button: { text: 'Use Images' },
-            multiple: true
-        });
+        openMediaLibrary: function (e) {
+            e.preventDefault();
 
-        frame.on('select', function () {
-            var images = frame.state().get('selection').map(function (attachment) {
-                attachment = attachment.toJSON();
-                return attachment.id;
+            if (this.frame) {
+                this.frame.open();
+                return;
+            }
+
+            this.frame = wp.media({
+                title: 'Select Images',
+                button: { text: 'Use Images' },
+                multiple: true
             });
 
-            var existing = $('#property_gallery').val().split(',').filter(Boolean);
-            existing = existing.concat(images);
+            this.frame.on('select', this.handleMediaSelect.bind(this));
+            this.frame.open();
+        },
+
+        handleMediaSelect: function () {
+            const images = this.frame.state().get('selection').map(attachment => attachment.toJSON().id);
+            let existing = $('#property_gallery').val().split(',').filter(Boolean);
+            existing = [...new Set(existing.concat(images))]; // Ensure unique values
+
             $('#property_gallery').val(existing.join(','));
+            this.updateGalleryPreview(existing);
+        },
 
-            updateGalleryPreview(existing);
-        });
+        updateGalleryPreview: function (images) {
+            const $galleryContainer = $('#property-gallery-container').empty();
+            images.forEach(id => {
+                const imageUrl = wp.media.attachment(id).get('url');
+                $galleryContainer.append(`
+                    <div class="gallery-image" data-id="${id}">
+                        <img src="${imageUrl}" />
+                        <button type="button" class="remove-image">×</button>
+                    </div>
+                `);
+            });
+        },
 
-        frame.open();
-    });
+        removeImage: function () {
+            const id = $(this).parent().data('id').toString();
+            let images = $('#property_gallery').val().split(',').filter(Boolean);
+            images = images.filter(val => val !== id);
 
-    function updateGalleryPreview(images) {
-        $('#property-gallery-container').empty();
-        images.forEach(function (id) {
-            var imageUrl = wp.media.attachment(id).get('url');
-            $('#property-gallery-container').append(
-                `<div class="gallery-image" data-id="${id}">
-                    <img src="${imageUrl}" />
-                    <button type="button" class="remove-image">×</button>
-                </div>`
-            );
-        });
-    }
+            $('#property_gallery').val(images.join(','));
+            $(this).parent().remove();
+        }
+    };
 
-    $(document).on('click', '.remove-image', function () {
-        var id = $(this).parent().data('id');
-        var images = $('#property_gallery').val().split(',').filter(val => val !== id);
-        $('#property_gallery').val(images.join(','));
-        $(this).parent().remove();
-    });
+    // Initialize the module.
+    PropertyGallery.init();
 });

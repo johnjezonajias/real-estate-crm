@@ -122,10 +122,10 @@ class API_Properties {
         }
     
         return rest_ensure_response( [
-            'success'   => true,
-            'message'   => "{$added_count} properties added successfully.",
-            'count'     => $added_count,
-            'failed'    => $failed_count,
+            'success'    => true,
+            'message'    => "{$added_count} properties added successfully.",
+            'count'      => $added_count,
+            'failed'     => $failed_count,
             'properties' => $added_properties
         ] );
     }
