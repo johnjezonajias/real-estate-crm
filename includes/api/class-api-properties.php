@@ -22,6 +22,28 @@ class API_Properties {
                 'permission_callback'   => '__return_true',
             ]
         );
+
+        register_rest_route( 'real-estate-crm/v1', '/properties', [
+            'methods'             => 'POST',
+            'callback'            => [__CLASS__, 'create_property'],
+            'permission_callback' => function () {
+                return current_user_can( 'edit_posts' );
+            },
+            'args' => [
+                'title'  => [
+                    'required' => true,
+                    'type'     => 'string',
+                ],
+            ],
+        ] );
+
+        register_rest_route( 'real-estate-crm/v1', '/properties/bulk', [
+            'methods'             => 'POST',
+            'callback'            => [__CLASS__, 'create_multiple_properties'],
+            'permission_callback' => function () {
+                return current_user_can( 'edit_posts' );
+            },
+        ] );        
     }
 
     public static function get_properties( $request ) {
@@ -53,6 +75,98 @@ class API_Properties {
         }
 
         return rest_ensure_response( self::prepare_property_data( $property ) );
+    }
+
+    public static function create_property( $request ) {
+        $params = $request->get_params();
+    
+        if ( isset( $params[0] ) ) {
+            return new \WP_Error( 'invalid_request', 'Use the /properties/bulk endpoint for multiple properties.', [ 'status' => 400 ] );
+        }
+    
+        $response = self::insert_property( $params );
+    
+        if ( is_wp_error( $response ) ) {
+            return $response;
+        }
+    
+        return rest_ensure_response( [
+            'success'  => true,
+            'message'  => 'Property added successfully.',
+            'count'    => 1,
+            'property' => $response
+        ] );
+    }    
+
+    public static function create_multiple_properties( $request ) {
+        $params = $request->get_params();
+    
+        if ( ! is_array( $params ) || empty( $params ) ) {
+            return new \WP_Error( 'invalid_data', 'Invalid property data.', [ 'status' => 400 ] );
+        }
+    
+        $added_count = 0;
+        $failed_count = 0;
+        $added_properties = [];
+    
+        foreach ( $params as $property ) {
+            $response = self::insert_property( $property );
+    
+            if ( is_wp_error( $response ) ) {
+                $failed_count++;
+                continue;
+            }
+    
+            $added_properties[] = $response;
+            $added_count++;
+        }
+    
+        return rest_ensure_response( [
+            'success'   => true,
+            'message'   => "{$added_count} properties added successfully.",
+            'count'     => $added_count,
+            'failed'    => $failed_count,
+            'properties' => $added_properties
+        ] );
+    }
+
+    private static function insert_property( $params ) {
+        if ( empty( $params['title'] ) ) {
+            return new \WP_Error( 'missing_title', 'Property title is required.', [ 'status' => 400 ] );
+        }
+    
+        $post_id = wp_insert_post(
+            [
+                'post_title'  => sanitize_text_field( $params['title'] ),
+                'post_type'   => 'property',
+                'post_status' => 'publish',
+            ]
+        );
+    
+        if ( is_wp_error( $post_id ) ) {
+            return new \WP_Error( 'insert_failed', 'Failed to create property.', [ 'status' => 500 ] );
+        }
+    
+        if ( isset( $params['meta'] ) && is_array( $params['meta'] ) ) {
+            foreach ( $params['meta'] as $key => $value ) {
+                update_post_meta( $post_id, "_$key", sanitize_text_field( $value ) );
+            }
+        }
+    
+        if ( isset( $params['gallery'] ) && is_array( $params['gallery'] ) ) {
+            $gallery_ids = array_map( 'intval', $params['gallery'] );
+            update_post_meta( $post_id, '_property_gallery', implode( ',', $gallery_ids ) );
+        }
+    
+        if ( isset( $params['taxonomies'] ) && is_array( $params['taxonomies'] ) ) {
+            foreach ( $params['taxonomies'] as $taxonomy => $terms ) {
+                if ( taxonomy_exists( $taxonomy ) ) {
+                    wp_set_object_terms( $post_id, array_map( 'sanitize_text_field', $terms ), $taxonomy );
+                }
+            }
+        }
+    
+        return self::prepare_property_data( get_post( $post_id ) );
     }
 
     private static function prepare_property_data( $property ) {

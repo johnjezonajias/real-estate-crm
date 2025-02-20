@@ -10,3 +10,6 @@ vendor/
 *.log
 *.DS_Store
 *.env
+
+# Custom ignores
+dummy*
