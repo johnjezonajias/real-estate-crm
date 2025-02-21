@@ -107,7 +107,9 @@ class Property_Meta {
 
                 switch ( $field['type'] ) {
                     case 'gallery':
-                        $gallery_ids = !empty( $value ) ? explode( ',', $value ) : [];
+                        $gallery_ids = is_string( $value ) ? array_filter( explode(',', $value ) ) : ( is_array($value) ? $value : [] );
+                        $value_str = implode( ',', array_map( 'intval', $gallery_ids ) );
+
                         echo '<div id="property-gallery-container">';
                             foreach ( $gallery_ids as $image_id ) {
                                 $image_id = intval( $image_id );
@@ -122,7 +124,7 @@ class Property_Meta {
                                 }
                             }
                         echo '</div>';
-                        echo "<input type='hidden' id='property_gallery' name='property_gallery' value='" . esc_attr($value) . "' />";
+                        echo "<input type='hidden' id='property_gallery' name='property_gallery' value='" . esc_attr( $value_str ) . "' />";
                         echo '<button type="button" id="add-property-gallery" class="button">Add Gallery Images</button>';
                         break;
                     case 'text':
@@ -161,7 +163,9 @@ class Property_Meta {
         }
 
         if ( isset( $_POST['property_gallery'] ) ) {
-            $gallery_ids = array_filter( explode( ',', sanitize_text_field( $_POST['property_gallery'] ) ) );
+            //$gallery_ids = array_filter( explode( ',', sanitize_text_field( $_POST['property_gallery'] ) ) );
+            $gallery_input = $_POST['property_gallery'];
+            $gallery_ids = is_array( $gallery_input ) ? array_map( 'sanitize_text_field', $gallery_input ) : explode( ',', sanitize_text_field( $gallery_input ) );
             
             if ( !empty( $gallery_ids ) ) {
                 update_post_meta( $post_id, '_property_gallery', implode( ',', $gallery_ids ) );

@@ -43,7 +43,29 @@ class API_Properties {
             'permission_callback' => function () {
                 return current_user_can( 'edit_posts' );
             },
-        ] );        
+        ] );
+
+        register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)', [
+            'methods'             => 'PUT, PATCH',
+            'callback'            => [__CLASS__, 'update_property'],
+            'permission_callback' => function () {
+                return current_user_can( 'edit_posts' );
+            },
+            'args' => [
+                'title' => [
+                    'type'     => 'string',
+                    'required' => false,
+                ],
+            ],
+        ] );
+
+        register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)', [
+            'methods'             => 'DELETE',
+            'callback'            => [__CLASS__, 'delete_property'],
+            'permission_callback' => function () {
+                return current_user_can( 'delete_posts' );
+            },
+        ] );
     }
 
     public static function get_properties( $request ) {
@@ -146,6 +168,10 @@ class API_Properties {
         if ( is_wp_error( $post_id ) ) {
             return new \WP_Error( 'insert_failed', 'Failed to create property.', [ 'status' => 500 ] );
         }
+
+        if ( isset( $params['featured_image'] ) && is_numeric( $params['featured_image'] ) ) {
+            set_post_thumbnail( $post_id, (int) $params['featured_image'] );
+        }
     
         if ( isset( $params['meta'] ) && is_array( $params['meta'] ) ) {
             foreach ( $params['meta'] as $key => $value ) {
@@ -153,9 +179,9 @@ class API_Properties {
             }
         }
     
-        if ( isset( $params['gallery'] ) && is_array( $params['gallery'] ) ) {
-            $gallery_ids = array_map( 'intval', $params['gallery'] );
-            update_post_meta( $post_id, '_property_gallery', implode( ',', $gallery_ids ) );
+        if ( isset( $params['meta']['property_gallery'] ) && is_array( $params['meta']['property_gallery'] ) ) {
+            $gallery_ids = array_map( 'intval', $params['meta']['property_gallery'] );
+            update_post_meta( $post_id, '_property_gallery', $gallery_ids );
         }
     
         if ( isset( $params['taxonomies'] ) && is_array( $params['taxonomies'] ) ) {
@@ -167,6 +193,82 @@ class API_Properties {
         }
     
         return self::prepare_property_data( get_post( $post_id ) );
+    }
+
+    public static function update_property( $request ) {
+        $property_id = (int) $request['id'];
+    
+        if ( ! get_post( $property_id ) || get_post_type( $property_id ) !== 'property' ) {
+            return new \WP_Error( 'not_found', 'Property not found.', [ 'status' => 404 ] );
+        }
+    
+        $params = $request->get_params();
+        $update_data = [ 'ID' => $property_id ];
+    
+        if ( isset( $params['title'] ) ) {
+            $update_data['post_title'] = sanitize_text_field( $params['title'] );
+        }
+    
+        // Update post data.
+        if ( count( $update_data ) > 1 ) {
+            $result = wp_update_post( $update_data, true );
+            if ( is_wp_error( $result ) ) {
+                return new \WP_Error( 'update_failed', 'Failed to update property.', [ 'status' => 500 ] );
+            }
+        }
+    
+        // Update specific meta fields with validation.
+        if ( !empty( $params['meta'] ) && is_array( $params['meta'] ) ) {
+            $existing_meta_keys = array_keys( get_post_meta( $property_id ) );
+
+            foreach ( $params['meta'] as $key => $value ) {
+                $meta_key = "_{$key}";
+
+                if ( in_array( $meta_key, $existing_meta_keys, true ) ) {
+                    update_post_meta( $property_id, $meta_key, sanitize_text_field( $value ) );
+                }
+            }
+        }
+
+        // Update featured image.
+        if ( isset( $params['featured_image'] ) && is_numeric( $params['featured_image'] ) ) {
+            set_post_thumbnail( $property_id, (int) $params['featured_image'] );
+        }
+    
+        // Update taxonomies.
+        if ( isset( $params['taxonomies'] ) && is_array( $params['taxonomies'] ) ) {
+            foreach ( $params['taxonomies'] as $taxonomy => $terms ) {
+                if ( taxonomy_exists( $taxonomy ) ) {
+                    wp_set_object_terms( $property_id, array_map( 'sanitize_text_field', $terms ), $taxonomy );
+                }
+            }
+        }
+    
+        return rest_ensure_response( [
+            'success'  => true,
+            'message'  => sprintf( 'Property with ID:%d updated successfully.', $property_id ),
+            'property' => self::prepare_property_data( get_post( $property_id ) ),
+        ] );
+    }
+
+    public static function delete_property( $request ) {
+        $property_id = (int) $request['id'];
+    
+        $property = get_post( $property_id );
+        if ( !$property || $property->post_type !== 'property' ) {
+            return new \WP_Error( 'not_found', 'Property not found.', [ 'status' => 404 ] );
+        }
+    
+        $deleted = wp_delete_post( $property_id, true );
+    
+        if ( !$deleted ) {
+            return new \WP_Error( 'delete_failed', 'Failed to delete property.', [ 'status' => 500 ] );
+        }
+    
+        return rest_ensure_response( [
+            'success' => true,
+            'message' => sprintf( 'Property with ID:%d is deleted successfully.', $property_id ),
+        ] );
     }
 
     private static function prepare_property_data( $property ) {
@@ -206,6 +308,15 @@ class API_Properties {
             'title'     => $property->post_title,
             'permalink' => get_permalink( $property->ID ),
         ];
+
+        // Fetch featured image.
+        $featured_image_id = get_post_thumbnail_id( $property->ID );
+        $featured_image_url = $featured_image_id ? wp_get_attachment_url( $featured_image_id ) : null;
+
+        $data['featured_image'] = [
+            'id'  => $featured_image_id,
+            'url' => $featured_image_url,
+        ];
     
         // Fetch meta fields.
         foreach ( $meta_fields as $field ) {
@@ -225,7 +336,7 @@ class API_Properties {
 
         // Fetch image gallery.
         $gallery = get_post_meta( $property->ID, '_property_gallery', true );
-        $gallery_ids = ! empty( $gallery ) ? explode( ',', $gallery ) : [];
+        $gallery_ids = is_array( $gallery ) ? $gallery : ( ! empty( $gallery ) ? explode( ',', $gallery ) : [] );
 
         $data['property_gallery'] = array_map( function ( $id ) {
             return [
