@@ -37,4 +37,4 @@ class Real_Estate_CRM_Property {
 }
 
 // Hook into admin scripts.
-add_action('admin_enqueue_scripts', ['Real_Estate_CRM_Property', 'enqueue_scripts']);
+add_action( 'admin_enqueue_scripts', ['Real_Estate_CRM_Property', 'enqueue_scripts'] );

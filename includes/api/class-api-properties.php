@@ -1,8 +1,6 @@
 <?php
 namespace Real_Estate_CRM\API;
 
-use WP;
-
 defined( 'ABSPATH' ) || exit;
 
 class API_Properties {
@@ -10,7 +8,7 @@ class API_Properties {
         register_rest_route( 'real-estate-crm/v1', '/properties', 
             [
                 'methods'               => 'GET',
-                'callback'              => [__CLASS__, 'get_properties'],
+                'callback'              => [ __CLASS__, 'get_properties' ],
                 'permission_callback'   => '__return_true',
             ]
         );
@@ -18,54 +16,62 @@ class API_Properties {
         register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)', 
             [
                 'methods'               => 'GET',
-                'callback'              => [__CLASS__, 'get_property'],
+                'callback'              => [ __CLASS__, 'get_property' ],
                 'permission_callback'   => '__return_true',
             ]
         );
 
-        register_rest_route( 'real-estate-crm/v1', '/properties', [
-            'methods'             => 'POST',
-            'callback'            => [__CLASS__, 'create_property'],
-            'permission_callback' => function () {
-                return current_user_can( 'edit_posts' );
-            },
-            'args' => [
-                'title'  => [
-                    'required' => true,
-                    'type'     => 'string',
+        register_rest_route( 'real-estate-crm/v1', '/properties',
+            [
+                'methods'             => 'POST',
+                'callback'            => [ __CLASS__, 'create_property' ],
+                'permission_callback' => function () {
+                    return current_user_can( 'edit_posts' );
+                },
+                'args' => [
+                    'title'  => [
+                        'required' => true,
+                        'type'     => 'string',
+                    ],
                 ],
-            ],
-        ] );
+            ]
+        );
 
-        register_rest_route( 'real-estate-crm/v1', '/properties/bulk', [
-            'methods'             => 'POST',
-            'callback'            => [__CLASS__, 'create_multiple_properties'],
-            'permission_callback' => function () {
-                return current_user_can( 'edit_posts' );
-            },
-        ] );
+        register_rest_route( 'real-estate-crm/v1', '/properties/bulk',
+            [
+                'methods'             => 'POST',
+                'callback'            => [ __CLASS__, 'create_multiple_properties' ],
+                'permission_callback' => function () {
+                    return current_user_can( 'edit_posts' );
+                },
+            ]
+        );
 
-        register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)', [
-            'methods'             => 'PUT, PATCH',
-            'callback'            => [__CLASS__, 'update_property'],
-            'permission_callback' => function () {
-                return current_user_can( 'edit_posts' );
-            },
-            'args' => [
-                'title' => [
-                    'type'     => 'string',
-                    'required' => false,
+        register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)',
+            [
+                'methods'             => 'PUT, PATCH',
+                'callback'            => [ __CLASS__, 'update_property' ],
+                'permission_callback' => function () {
+                    return current_user_can( 'edit_posts' );
+                },
+                'args' => [
+                    'title' => [
+                        'type'     => 'string',
+                        'required' => false,
+                    ],
                 ],
-            ],
-        ] );
+            ]
+        );
 
-        register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)', [
-            'methods'             => 'DELETE',
-            'callback'            => [__CLASS__, 'delete_property'],
-            'permission_callback' => function () {
-                return current_user_can( 'delete_posts' );
-            },
-        ] );
+        register_rest_route( 'real-estate-crm/v1', '/properties/(?P<id>\d+)',
+            [
+                'methods'             => 'DELETE',
+                'callback'            => [ __CLASS__, 'delete_property' ],
+                'permission_callback' => function () {
+                    return current_user_can( 'delete_posts' );
+                },
+            ]
+        );
     }
 
     public static function get_properties( $request ) {
@@ -87,13 +93,13 @@ class API_Properties {
 
     public static function get_property( $request ) {
         $property_id = (int) $request['id'];
-        if ( !$property_id ) {
-            return new \WP_Error( 'no_property', 'Invalid property ID.', ['status' => 404] );
+        if ( ! $property_id ) {
+            return new \WP_Error( 'no_property', 'Invalid property ID.', [ 'status' => 404 ] );
         }
 
         $property = get_post( $property_id );
-        if ( !$property || $property->post_type !== 'property' ) {
-            return new \WP_Error( 'not_found', 'Property not found.', ['status' => 404] );
+        if ( ! $property || $property->post_type !== 'property' ) {
+            return new \WP_Error( 'not_found', 'Property not found.', [ 'status' => 404 ] );
         }
 
         return rest_ensure_response( self::prepare_property_data( $property ) );
@@ -112,12 +118,14 @@ class API_Properties {
             return $response;
         }
     
-        return rest_ensure_response( [
-            'success'  => true,
-            'message'  => 'Property added successfully.',
-            'count'    => 1,
-            'property' => $response
-        ] );
+        return rest_ensure_response(
+            [
+                'success'  => true,
+                'message'  => 'Property added successfully.',
+                'count'    => 1,
+                'property' => $response
+            ] 
+        );
     }    
 
     public static function create_multiple_properties( $request ) {
@@ -143,13 +151,15 @@ class API_Properties {
             $added_count++;
         }
     
-        return rest_ensure_response( [
-            'success'    => true,
-            'message'    => "{$added_count} properties added successfully.",
-            'count'      => $added_count,
-            'failed'     => $failed_count,
-            'properties' => $added_properties
-        ] );
+        return rest_ensure_response(
+            [
+                'success'    => true,
+                'message'    => "{$added_count} properties added successfully.",
+                'count'      => $added_count,
+                'failed'     => $failed_count,
+                'properties' => $added_properties
+            ]
+        );
     }
 
     private static function insert_property( $params ) {
@@ -218,14 +228,31 @@ class API_Properties {
         }
     
         // Update specific meta fields with validation.
-        if ( !empty( $params['meta'] ) && is_array( $params['meta'] ) ) {
+        if ( ! empty( $params['meta'] ) && is_array( $params['meta'] ) ) {
             $existing_meta_keys = array_keys( get_post_meta( $property_id ) );
 
             foreach ( $params['meta'] as $key => $value ) {
                 $meta_key = "_{$key}";
 
-                if ( in_array( $meta_key, $existing_meta_keys, true ) ) {
-                    update_post_meta( $property_id, $meta_key, sanitize_text_field( $value ) );
+                if ( $key === 'property_gallery' ) {
+                    if ( is_string( $value ) ) {
+                        $value = array_map( 'intval', explode( ',', $value ) );
+                    } elseif ( is_array( $value ) ) {
+                        $value = array_map( 'intval', $value );
+                    } else {
+                        continue;
+                    }
+                
+                    $existing_gallery = get_post_meta( $property_id, $meta_key, true );
+                
+                    if ( ! is_array( $existing_gallery ) ) {
+                        $existing_gallery = [];
+                    }
+                
+                    // Merge new images with existing ones and remove duplicates.
+                    $updated_gallery = array_unique( array_merge( $existing_gallery, $value ) );
+                
+                    update_post_meta( $property_id, $meta_key, $updated_gallery );
                 }
             }
         }
@@ -244,31 +271,35 @@ class API_Properties {
             }
         }
     
-        return rest_ensure_response( [
-            'success'  => true,
-            'message'  => sprintf( 'Property with ID:%d updated successfully.', $property_id ),
-            'property' => self::prepare_property_data( get_post( $property_id ) ),
-        ] );
+        return rest_ensure_response(
+            [
+                'success'  => true,
+                'message'  => sprintf( 'Property with ID:%d updated successfully.', $property_id ),
+                'property' => self::prepare_property_data( get_post( $property_id ) ),
+            ]
+        );
     }
 
     public static function delete_property( $request ) {
         $property_id = (int) $request['id'];
     
         $property = get_post( $property_id );
-        if ( !$property || $property->post_type !== 'property' ) {
+        if ( ! $property || $property->post_type !== 'property' ) {
             return new \WP_Error( 'not_found', 'Property not found.', [ 'status' => 404 ] );
         }
     
         $deleted = wp_delete_post( $property_id, true );
     
-        if ( !$deleted ) {
+        if ( ! $deleted ) {
             return new \WP_Error( 'delete_failed', 'Failed to delete property.', [ 'status' => 500 ] );
         }
     
-        return rest_ensure_response( [
-            'success' => true,
-            'message' => sprintf( 'Property with ID:%d is deleted successfully.', $property_id ),
-        ] );
+        return rest_ensure_response(
+            [
+                'success' => true,
+                'message' => sprintf( 'Property with ID:%d is deleted successfully.', $property_id ),
+            ]
+        );
     }
 
     private static function prepare_property_data( $property ) {
@@ -320,7 +351,7 @@ class API_Properties {
     
         // Fetch meta fields.
         foreach ( $meta_fields as $field ) {
-            $data[$field] = get_post_meta( $property->ID, "_$field", true );
+            $data[ $field ] = get_post_meta( $property->ID, "_$field", true );
         }
     
         // Fetch taxonomies.
@@ -328,9 +359,9 @@ class API_Properties {
         foreach ( $taxonomies as $taxonomy ) {
             $terms = get_the_terms( $property->ID, $taxonomy );
             if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                $data[$taxonomy] = wp_list_pluck( $terms, 'name' );
+                $data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
             } else {
-                $data[$taxonomy] = [];
+                $data[ $taxonomy ] = [];
             }
         }
 

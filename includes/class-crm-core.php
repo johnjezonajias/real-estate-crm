@@ -12,7 +12,11 @@ class Core {
         require_once RECRM_PATH . 'includes/property/class-property-init.php';
         Property_Init::init();
 
-        // Load REST API classes.
+        // Initialize agent modules.
+        require_once RECRM_PATH . 'includes/agent/class-agent-init.php';
+        Agent\Agent_Init::init();
+
+        // Initial and Load REST API classes.
         require_once RECRM_PATH . 'includes/api/class-api-init.php';
         API_Init::init();
     }

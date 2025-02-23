@@ -157,13 +157,12 @@ class Property_Meta {
         echo '</div>';
     }
 
-    public static function save_meta($post_id) {
+    public static function save_meta( $post_id ) {
         if ( !isset( $_POST['property_meta_nonce'] ) || !wp_verify_nonce( $_POST['property_meta_nonce'], 'save_property_meta' ) ) {
             return;
         }
 
         if ( isset( $_POST['property_gallery'] ) ) {
-            //$gallery_ids = array_filter( explode( ',', sanitize_text_field( $_POST['property_gallery'] ) ) );
             $gallery_input = $_POST['property_gallery'];
             $gallery_ids = is_array( $gallery_input ) ? array_map( 'sanitize_text_field', $gallery_input ) : explode( ',', sanitize_text_field( $gallery_input ) );
             

@@ -14,5 +14,16 @@ class Property_Init {
         Property_Meta::init();
         Property_Taxonomies::init();
         Property_Admin::init();
+
+        // Hook to modify the property post.
+        add_filter( 'enter_title_here', [ __CLASS__, 'change_post_title_placeholder' ], 10, 2 );
+    }
+
+    public static function change_post_title_placeholder( $title, $post ) {
+        if ( 'property' === $post->post_type ) {
+            return 'Enter property title';
+        }
+
+        return $title;
     }
 }
