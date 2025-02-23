@@ -99,13 +99,13 @@ class Agent_Meta {
         foreach ( self::$meta_fields as $fields ) {
             foreach ( $fields as $key => $field ) {
                 if ( $field['type'] === 'gallery' ) {
-                    if ( isset( $_POST[$key] ) ) {
-                        $value = sanitize_text_field( $_POST[$key] );
+                    if ( isset( $_POST[ $key ] ) ) {
+                        $value = sanitize_text_field( $_POST[ $key ] );
                         update_post_meta( $post_id, "_$key", $value );
                     }
                 } else {
-                    if ( isset( $_POST[$key] ) ) {
-                        $value = sanitize_text_field( $_POST[$key] );
+                    if ( isset( $_POST[ $key ] ) ) {
+                        $value = sanitize_text_field( $_POST[ $key ] );
                         update_post_meta( $post_id, "_$key", $value );
                     }
                 }

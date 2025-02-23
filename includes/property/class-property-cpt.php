@@ -26,7 +26,7 @@ class Property_CPT {
             'label'              => __( 'Properties', 'real-estate-crm' ),
             'public'             => true,
             'supports'           => ['title', 'thumbnail'],
-            'taxonomies'         => [ 'property_type', 'property_status', 'zoning_type' ],
+            'taxonomies'         => ['property_type', 'property_status', 'zoning_type'],
             'menu_icon'          => 'dashicons-admin-home',
             'rewrite'            => ['slug' => 'properties'],
             'has_archive'        => true,

@@ -29,9 +29,7 @@ class API_Agents {
             [
                 'methods'               => 'POST',
                 'callback'              => [ __CLASS__, 'create_agent' ],
-                'permission_callback'   => function() {
-                    return current_user_can( 'edit_posts' );
-                },
+                'permission_callback'   => [ __CLASS__, 'validate_permission' ],
                 'args'  => [
                     'title' => [
                         'required' => true,
@@ -45,9 +43,7 @@ class API_Agents {
             [
                 'methods'               => 'POST',
                 'callback'              => [ __CLASS__, 'create_multiple_agents' ],
-                'permission_callback'   => function() {
-                    return current_user_can( 'edit_posts' );
-                },
+                'permission_callback'   => [  __CLASS__, 'validate_permission' ],
             ]
         );
 
@@ -55,9 +51,7 @@ class API_Agents {
             [
                 'methods'               => 'PUT, PATCH',
                 'callback'              => [ __CLASS__, 'update_agent' ],
-                'permission_callback'   => function() {
-                    return current_user_can( 'edit_posts' );
-                },
+                'permission_callback'   => [ __CLASS__, 'validate_permission' ],
                 'args'  => [
                     'title' => [
                         'required' => true,
@@ -71,11 +65,30 @@ class API_Agents {
             [
                 'methods'               => 'DELETE',
                 'callback'              => [ __CLASS__, 'delete_agent' ],
-                'permission_callback'   => function() {
-                    return current_user_can( 'delete_posts' );
-                },
+                'permission_callback'   => [ __CLASS__, 'validate_permission' ],
             ]
         );
+    }
+
+    public static function validate_permission( $request ) {
+        require_once RECRM_PATH . 'includes/api/class-api-authenticator.php';
+
+        $authentication_result = API_Authenticator::validate_api_key( $request );
+
+        if ( is_wp_error( $authentication_result ) ) {
+            return $authentication_result;
+        }
+
+        // Check if the user has the required capabilities.
+        if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'delete_posts' ) ) {
+            return new \WP_Error(
+                'rest_forbidden',
+                __( 'You do not have permission to edit or delete agents.', 'real-estate-crm' ),
+                [ 'status' => 403 ]
+            );
+        }
+
+        return true;
     }
 
     public static function get_agents( $request ) {

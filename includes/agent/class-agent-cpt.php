@@ -26,7 +26,7 @@ class Agent_CPT {
             'label'              => __( 'Agents', 'real-estate-crm' ),
             'public'             => true,
             'supports'           => ['title', 'thumbnail'],
-            'taxonomies'         => [ 'agent_type', 'agent_status' ],
+            'taxonomies'         => ['agent_type', 'agent_status'],
             'menu_icon'          => 'dashicons-businessman',
             'rewrite'            => ['slug' => 'agents'],
             'has_archive'        => true,
