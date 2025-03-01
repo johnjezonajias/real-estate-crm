@@ -59,7 +59,10 @@ class Property_Data {
         $data = [
             'id'        => ( int ) $property->ID,
             'title'     => $property->post_title,
+            'slug'      => get_post_field( 'post_name', $property->ID ),
             'permalink' => get_permalink( $property->ID ),
+            'date'      => get_the_date( 'Y-m-d H:i:s', $property->ID ),
+            'status'    => get_post_status( $property->ID ),
         ];
 
         // Fetch featured image.

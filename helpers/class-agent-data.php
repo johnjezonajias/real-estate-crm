@@ -23,9 +23,12 @@ class Agent_Data {
         ];
 
         $data = [
-            'id'          => ( int ) $agent->ID,
-            'title'       => $agent->post_title,
-            'permalink'   => get_permalink( $agent->ID ),
+            'id'        => ( int ) $agent->ID,
+            'title'     => $agent->post_title,
+            'slug'      => get_post_field( 'post_name', $agent->ID ),
+            'permalink' => get_permalink( $agent->ID ),
+            'date'      => get_the_date( 'Y-m-d H:i:s', $agent->ID ),
+            'status'    => get_post_status( $agent->ID ),
         ];
 
         // Fetch featured image.
