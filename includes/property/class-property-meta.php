@@ -3,13 +3,17 @@ namespace Real_Estate_CRM\Property;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once RECRM_PATH . 'includes/models/class-property-agent-manager.php';
+use Real_Estate_CRM\Models\Property_Agent_Manager;
+
 class Property_Meta {
     private static $meta_fields = [];
 
     public static function init() {
         self::define_meta_fields();
-        add_action( 'add_meta_boxes', [__CLASS__, 'register_meta_boxes'] );
-        add_action( 'save_post', [__CLASS__, 'save_meta'] );
+        add_action( 'add_meta_boxes',  [__CLASS__, 'register_meta_boxes' ] );
+        add_action( 'save_post', [ __CLASS__, 'save_meta' ] );
+        add_action( 'save_post_property', [ __CLASS__,'save_property_agents' ] );
     }
 
     private static function define_meta_fields() {
@@ -92,6 +96,15 @@ class Property_Meta {
             'normal',
             'high'
         );
+
+        add_meta_box(
+            'property_agents_metabox',
+            __( 'Assigned Agents', 'real-estate-crm' ),
+            [__CLASS__, 'render_meta_box_agents'],
+            'property',
+            'side',
+            'default'
+        );
     }
 
     public static function render_meta_box( $post ) {
@@ -157,8 +170,23 @@ class Property_Meta {
         echo '</div>';
     }
 
+    public static function render_meta_box_agents( $post ) {
+        global $wpdb;
+        $agents = $wpdb->get_results( "SELECT ID, post_title FROM {$wpdb->prefix}posts WHERE post_type = 'agent' AND post_status = 'publish'" );
+        
+        // Get selected agents for this property.
+        $selected_agents = $wpdb->get_col( $wpdb->prepare( "SELECT agent_id FROM {$wpdb->prefix}property_agents WHERE property_id = %d", $post->ID ) );
+
+        echo '<select name="property_agents[]" multiple style="width:100%;">';
+            foreach ( $agents as $agent ) {
+                $selected = in_array( $agent->ID, $selected_agents ) ? 'selected' : '';
+                echo "<option value='{$agent->ID}' $selected>{$agent->post_title}</option>";
+            }
+        echo '</select>';
+    }
+
     public static function save_meta( $post_id ) {
-        if ( !isset( $_POST['property_meta_nonce'] ) || !wp_verify_nonce( $_POST['property_meta_nonce'], 'save_property_meta' ) ) {
+        if ( ! isset( $_POST['property_meta_nonce'] ) || ! wp_verify_nonce( $_POST['property_meta_nonce'], 'save_property_meta' ) ) {
             return;
         }
 
@@ -196,6 +224,24 @@ class Property_Meta {
                         update_post_meta( $post_id, "_$key", $value );
                     }
                 }
+            }
+        }
+    }
+
+    public static function save_property_agents( $post_id ) {
+        global $wpdb;
+
+        if ( isset( $_POST['property_agents'] ) ) {
+            $agents = $_POST['property_agents'];
+
+            $wpdb->delete( "{$wpdb->prefix}property_agents", ['property_id' => $post_id] );
+
+            foreach ( $agents as $agent_id ) {
+                $wpdb->insert( "{$wpdb->prefix}property_agents", [
+                    'property_id' => $post_id,
+                    'agent_id'    => intval( $agent_id ),
+                    'assigned_at' => current_time( 'mysql' )
+                ] );
             }
         }
     }

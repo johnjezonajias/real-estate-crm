@@ -1,7 +1,7 @@
 <?php
-
 namespace Real_Estate_CRM\Helpers;
 
+use Real_Estate_CRM\Models\Property_Agent_Manager;
 class Property_Data {
     public static function prepare_property_data( $property ) {
         $meta_fields = [
@@ -34,31 +34,61 @@ class Property_Data {
             'payment_options',
             'estimated_mortgage'
         ];
+
+        $integer_fields = [
+            'listing_price',
+            'year_built',
+            'lot_area',
+            'floor_area',
+            'bedrooms',
+            'bathrooms',
+            'carport',
+            'garage_capacity',
+            'office_space',
+            'floor_number',
+            'parking_slots',
+            'association_dues',
+            'property_tax',
+            'estimated_mortgage'
+        ];
+
+        $boolean_fields = [
+            'pet_friendly'
+        ];
     
         $data = [
-            'id'        => $property->ID,
+            'id'        => ( int ) $property->ID,
             'title'     => $property->post_title,
             'permalink' => get_permalink( $property->ID ),
         ];
 
         // Fetch featured image.
-        $featured_image_id = get_post_thumbnail_id( $property->ID );
+        $featured_image_id = ( int ) get_post_thumbnail_id( $property->ID );
         $featured_image_url = $featured_image_id ? wp_get_attachment_url( $featured_image_id ) : null;
 
         $data['featured_image'] = [
-            'id'  => $featured_image_id,
+            'id'  => ( int ) $featured_image_id,
             'url' => $featured_image_url,
         ];
     
         // Fetch meta fields.
         foreach ( $meta_fields as $field ) {
-            $data[ $field ] = get_post_meta( $property->ID, "_$field", true );
+            $meta_value = get_post_meta( $property->ID, "_$field", true );
+
+            if ( in_array( $field, $integer_fields, true ) ) {
+                $data[ $field ] = is_numeric( $meta_value ) ? ( int ) $meta_value : 0;
+            } elseif ( in_array( $field, $boolean_fields, true ) ) {
+                $data[ $field ] = filter_var( $meta_value, FILTER_VALIDATE_BOOLEAN );
+            } else {
+                $data[ $field ] = $meta_value;
+            }
         }
     
         // Fetch taxonomies.
         $taxonomies = get_object_taxonomies( 'property', 'names' );
         foreach ( $taxonomies as $taxonomy ) {
             $terms = get_the_terms( $property->ID, $taxonomy );
+
             if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
                 $data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
             } else {
@@ -76,6 +106,9 @@ class Property_Data {
                 'url' => wp_get_attachment_image_url( $id, 'large' )
             ];
         }, $gallery_ids );
+
+        // Fetch agents assign to property.
+        $data['property_agents'] = Property_Agent_Manager::get_agents_for_property( $property->ID );
     
         return $data;
     }
