@@ -3,6 +3,10 @@ namespace Real_Estate_CRM\API;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once RECRM_PATH . 'helpers/class-property-data.php';
+
+use Helpers\Property_Data as HelpersProperty_Data;
+use Real_Estate_CRM\Helpers\Property_Data;
 class API_Properties {
     public static function register_routes() {
         register_rest_route( 'real-estate-crm/v1', '/properties', 
@@ -77,7 +81,7 @@ class API_Properties {
         $data = [];
 
         foreach ( $properties as $property ) {
-            $data[] = self::prepare_property_data( $property );
+            $data[] = Property_Data::prepare_property_data( $property );
         }
 
         return rest_ensure_response( $data );
@@ -94,7 +98,7 @@ class API_Properties {
             return new \WP_Error( 'not_found', 'Property not found.', [ 'status' => 404 ] );
         }
 
-        return rest_ensure_response( self::prepare_property_data( $property ) );
+        return rest_ensure_response( Property_Data::prepare_property_data( $property ) );
     }
 
     public static function create_property( $request ) {
@@ -194,7 +198,7 @@ class API_Properties {
             }
         }
     
-        return self::prepare_property_data( get_post( $post_id ) );
+        return Property_Data::prepare_property_data( get_post( $post_id ) );
     }
 
     public static function update_property( $request ) {
@@ -267,7 +271,7 @@ class API_Properties {
             [
                 'success'  => true,
                 'message'  => sprintf( 'Property with ID:%d updated successfully.', $property_id ),
-                'property' => self::prepare_property_data( get_post( $property_id ) ),
+                'property' => Property_Data::prepare_property_data( get_post( $property_id ) ),
             ]
         );
     }
@@ -292,83 +296,6 @@ class API_Properties {
                 'message' => sprintf( 'Property with ID:%d is deleted successfully.', $property_id ),
             ]
         );
-    }
-
-    private static function prepare_property_data( $property ) {
-        $meta_fields = [
-            'developer_name',
-            'listing_price',
-            'location',
-            'address',
-            'google_maps_link',
-            'year_built',
-            'availability_status',
-            'lot_area',
-            'floor_area',
-            'bedrooms',
-            'bathrooms',
-            'carport',
-            'garage_capacity',
-            'furnishing_status',
-            'office_space',
-            'floor_number',
-            'parking_slots',
-            'building_amenities',
-            'water_supply',
-            'electricity_provider',
-            'internet_connection',
-            'security_features',
-            'pet_friendly',
-            'nearby_landmarks',
-            'association_dues',
-            'property_tax',
-            'payment_options',
-            'estimated_mortgage'
-        ];
-    
-        $data = [
-            'id'        => $property->ID,
-            'title'     => $property->post_title,
-            'permalink' => get_permalink( $property->ID ),
-        ];
-
-        // Fetch featured image.
-        $featured_image_id = get_post_thumbnail_id( $property->ID );
-        $featured_image_url = $featured_image_id ? wp_get_attachment_url( $featured_image_id ) : null;
-
-        $data['featured_image'] = [
-            'id'  => $featured_image_id,
-            'url' => $featured_image_url,
-        ];
-    
-        // Fetch meta fields.
-        foreach ( $meta_fields as $field ) {
-            $data[ $field ] = get_post_meta( $property->ID, "_$field", true );
-        }
-    
-        // Fetch taxonomies.
-        $taxonomies = get_object_taxonomies( 'property', 'names' );
-        foreach ( $taxonomies as $taxonomy ) {
-            $terms = get_the_terms( $property->ID, $taxonomy );
-            if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                $data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
-            } else {
-                $data[ $taxonomy ] = [];
-            }
-        }
-
-        // Fetch image gallery.
-        $gallery = get_post_meta( $property->ID, '_property_gallery', true );
-        $gallery_ids = is_array( $gallery ) ? $gallery : ( ! empty( $gallery ) ? explode( ',', $gallery ) : [] );
-
-        $data['property_gallery'] = array_map( function ( $id ) {
-            return [
-                'id'  => $id,
-                'url' => wp_get_attachment_image_url( $id, 'large' )
-            ];
-        }, $gallery_ids );
-    
-        return $data;
     }
 
     public static function validate_permission( $request ) {

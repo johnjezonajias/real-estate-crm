@@ -42,8 +42,14 @@ class Agent_Init {
                         featuredImageHeading.textContent = 'Profile Picture';
                     }
     
-                    if ( featuredImageButton ) {
-                        featuredImageButton.textContent = 'Set profile picture';
+                    if (featuredImageButton) {
+                        // Check if an <img> tag is already inside the button
+                        let hasImage = featuredImageButton.querySelector("img") !== null;
+
+                        if (!hasImage) {
+                            // Only change text if no image is present
+                            featuredImageButton.textContent = "Set profile picture";
+                        }
                     }
     
                     if ( removeImageButton ) {

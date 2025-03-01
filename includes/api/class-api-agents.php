@@ -3,6 +3,9 @@ namespace Real_Estate_CRM\API;
 
 defined( 'ABSPATH' ) || exit;
 
+require_once RECRM_PATH . 'helpers/class-agent-data.php';
+use Real_Estate_CRM\Helpers\Agent_Data;
+
 class API_Agents {
     public static function init() {
         add_action( 'rest_api_init', [ __CLASS__, 'register_routes' ] );
@@ -70,27 +73,6 @@ class API_Agents {
         );
     }
 
-    public static function validate_permission( $request ) {
-        require_once RECRM_PATH . 'includes/api/class-api-authenticator.php';
-
-        $authentication_result = API_Authenticator::validate_api_key( $request );
-
-        if ( is_wp_error( $authentication_result ) ) {
-            return $authentication_result;
-        }
-
-        // Check if the user has the required capabilities.
-        if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'delete_posts' ) ) {
-            return new \WP_Error(
-                'rest_forbidden',
-                __( 'You do not have permission to edit or delete agents.', 'real-estate-crm' ),
-                [ 'status' => 403 ]
-            );
-        }
-
-        return true;
-    }
-
     public static function get_agents( $request ) {
         $args = [
             'post_type'      => 'agent',
@@ -101,7 +83,7 @@ class API_Agents {
         $data = [];
 
         foreach ( $agents as $agent ) {
-            $data[] = self::prepare_agent_data( $agent );
+            $data[] = Agent_Data::prepare_agent_data( $agent );
         }
 
         return rest_ensure_response( $data );
@@ -118,7 +100,7 @@ class API_Agents {
             return new \WP_Error( 'not_found', 'Agent not found.', [ 'status' => 404 ] );
         }
 
-        return rest_ensure_response( self::prepare_agent_data( $agent ) );
+        return rest_ensure_response( Agent_Data::prepare_agent_data( $agent ) );
     }
 
     public static function create_agent( $request ) {
@@ -221,7 +203,7 @@ class API_Agents {
             [
                 'success'   => true,
                 'message'   => sprintf( 'Agent %d updated successfully', $agent_id ),
-                'agent'     => self::prepare_agent_data( get_post( $agent_id ) ),
+                'agent'     => Agent_Data::prepare_agent_data( get_post( $agent_id ) ),
             ]
         );
     }
@@ -282,59 +264,27 @@ class API_Agents {
             }
         }
     
-        return self::prepare_agent_data( get_post( $agent_id ) );
-    }    
+        return Agent_Data::prepare_agent_data( get_post( $agent_id ) );
+    }
 
-    private static function prepare_agent_data( $agent ) {
-        $meta_fields = [
-            'agent_display_name',
-            'agent_bio',
-            'agent_facebook',
-            'agent_twitter',
-            'agent_linkedin',
-            'agent_instagram',
-            'agent_license',
-            'agent_agency',
-            'agent_experience',
-            'agent_specialties',
-            'agent_phone',
-            'agent_email',
-            'agent_whatsapp',
-            'agent_availability',
-            'agent_rating',
-        ];
+    public static function validate_permission( $request ) {
+        require_once RECRM_PATH . 'includes/api/class-api-authenticator.php';
 
-        $data = [
-            'id'          => $agent->ID,
-            'title'       => $agent->post_title,
-            'permalink'   => get_permalink( $agent->ID ),
-        ];
+        $authentication_result = API_Authenticator::validate_api_key( $request );
 
-        // Fetch featured image.
-        $featured_image_id = get_post_thumbnail_id( $agent->ID );
-        $featrued_image_url = $featured_image_id ? wp_get_attachment_image_url( $featured_image_id, 'thumbnail' ) : null;
-
-        $data['featured_image'] = [
-            'id'  => $featured_image_id,
-            'url' => $featrued_image_url,
-        ];
-
-        // Fetch meta fields.
-        foreach ( $meta_fields as $field ) {
-            $data[ $field ] = get_post_meta( $agent->ID, "_$field", true );
+        if ( is_wp_error( $authentication_result ) ) {
+            return $authentication_result;
         }
 
-        // Fetch taxonomies.
-        $taxonomies = get_object_taxonomies( 'agent', 'names' );
-        foreach ( $taxonomies as $taxonomy ) {
-            $terms = get_the_terms( $agent->ID, $taxonomy );
-            if ( ! empty( $terms ) && ! is_wp_error( $terms ) ) {
-                $data[ $taxonomy ] = wp_list_pluck( $terms, 'name' );
-            } else {
-                $data[ $taxonomy ] = [];
-            }
+        // Check if the user has the required capabilities.
+        if ( ! current_user_can( 'edit_posts' ) && ! current_user_can( 'delete_posts' ) ) {
+            return new \WP_Error(
+                'rest_forbidden',
+                __( 'You do not have permission to edit or delete agents.', 'real-estate-crm' ),
+                [ 'status' => 403 ]
+            );
         }
 
-        return $data;
+        return true;
     }
 }
