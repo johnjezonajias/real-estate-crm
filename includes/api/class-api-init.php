@@ -16,5 +16,9 @@ class API_Init {
         // Agents API routes.
         require_once RECRM_PATH . 'includes/api/class-api-agents.php';
         API_Agents::register_routes();
+
+        // Leads API routes.
+        require_once RECRM_PATH . 'includes/api/class-api-leads.php';
+        API_Leads::register_routes();
     }
 }

@@ -21,7 +21,7 @@ define( 'RECRM_URL', plugin_dir_url( __FILE__ ) );
 require_once RECRM_PATH . 'includes/class-crm-core.php';
 
 // Initialize plugin.
-Real_Estate_CRM\Core::init();
+Real_Estate_CRM\CRM_Core::init();
 
 /**
  * Enqueue scripts and styles for property gallery.

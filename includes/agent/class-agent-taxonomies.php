@@ -5,7 +5,7 @@ defined( 'ABSPATH' ) || exit;
 
 class Agent_Taxonomies {
     public static function init() {
-        add_action( 'init', [__CLASS__, 'register_taxonomies'], 11 );
+        add_action( 'init', [ __CLASS__, 'register_taxonomies' ], 11 );
     }
 
     public static function register_taxonomies() {

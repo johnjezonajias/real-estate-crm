@@ -27,7 +27,7 @@ class Agent_CPT {
             'public'             => true,
             'supports'           => ['title', 'thumbnail'],
             'taxonomies'         => ['agent_type', 'agent_status'],
-            'menu_icon'          => 'dashicons-businessman',
+            'menu_icon'          => 'dashicons-groups',
             'rewrite'            => ['slug' => 'agents'],
             'has_archive'        => true,
             'show_in_rest'       => true,
