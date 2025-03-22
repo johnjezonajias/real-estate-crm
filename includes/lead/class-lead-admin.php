@@ -24,11 +24,17 @@ class Lead_Admin {
 
     public static function custom_column_content( $column, $post_id ) {
         if ( $column == 'lead-property' ) {
-            echo get_post_meta( $post_id, '_lead_property', true ) ?: '--';
-        }
+            $property_id    = get_post_meta( $post_id, '_lead_property', true );
+            $property_title = $property_id ? get_the_title( $property_id ) : '--';
 
+            echo esc_html( $property_title );
+        }
+    
         if ( $column == 'lead-agent' ) {
-            echo get_post_meta( $post_id, '_lead_agent', true ) ?: '--';
+            $agent_id   = get_post_meta( $post_id, '_lead_agent', true );
+            $agent_name = $agent_id ? get_the_title( $agent_id ) : '--';
+
+            echo esc_html( $agent_name );
         }
     }
 }
