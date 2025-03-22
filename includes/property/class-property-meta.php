@@ -6,12 +6,13 @@ defined( 'ABSPATH' ) || exit;
 require_once RECRM_PATH . 'includes/models/class-property-agent-manager.php';
 use Real_Estate_CRM\Models\Property_Agent_Manager;
 
+
 class Property_Meta {
     private static $meta_fields = [];
 
     public static function init() {
         self::define_meta_fields();
-        add_action( 'add_meta_boxes',  [__CLASS__, 'register_meta_boxes' ] );
+        add_action( 'add_meta_boxes',  [ __CLASS__, 'register_meta_boxes' ] );
         add_action( 'save_post', [ __CLASS__, 'save_meta' ] );
         add_action( 'save_post_property', [ __CLASS__,'save_property_agents' ] );
     }
@@ -91,7 +92,7 @@ class Property_Meta {
         add_meta_box(
             'property_meta_box',
             __( 'Property Details', 'real-estate-crm' ),
-            [__CLASS__, 'render_meta_box'],
+            [ __CLASS__, 'render_meta_box' ],
             'property',
             'normal',
             'high'
@@ -100,7 +101,7 @@ class Property_Meta {
         add_meta_box(
             'property_agents_metabox',
             __( 'Assigned Agents', 'real-estate-crm' ),
-            [__CLASS__, 'render_meta_box_agents'],
+            [ __CLASS__, 'render_meta_box_agents' ],
             'property',
             'side',
             'default'
@@ -207,7 +208,7 @@ class Property_Meta {
             return;
         }
 
-        if ( !current_user_can( 'edit_post', $post_id ) ) {
+        if ( ! current_user_can( 'edit_post', $post_id ) ) {
             return;
         }
 

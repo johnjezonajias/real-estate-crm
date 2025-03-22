@@ -10,27 +10,29 @@ class Lead_Taxonomies {
     }
 
     public static function register_taxonomies() {
-        register_taxonomy( 'lead_status', 'lead', [
-            'labels'            => [
-                'name'              => __( 'Lead Statuses', 'real-estate-crm' ),
-                'singular_name'     => __( 'Lead Status', 'real-estate-crm' ),
-                'search_items'      => __( 'Search Lead Statuses', 'real-estate-crm' ),
-                'all_items'         => __( 'All Lead Statuses', 'real-estate-crm' ),
-                'edit_item'         => __( 'Edit Lead Status', 'real-estate-crm' ),
-                'update_item'       => __( 'Update Lead Status', 'real-estate-crm' ),
-                'add_new_item'      => __( 'Add New Lead Status', 'real-estate-crm' ),
-                'new_item_name'     => __( 'New Lead Status Name', 'real-estate-crm' ),
-                'menu_name'         => __( 'Lead Status', 'real-estate-crm' ),
-            ],
-            'public'            => true,
-            'show_ui'           => true,
-            'show_admin_column' => true,
-            'hierarchical'      => true,
-            'query_var'         => true,
-            'rewrite'           => ['slug' => 'lead-status'],
-            'show_in_rest'      => true,
-            'meta_box_cb'       => [__CLASS__, 'lead_status_radio_meta_box'],
-        ]);
+        register_taxonomy( 'lead_status', 'lead',
+            [
+                'labels'            => [
+                    'name'          => __( 'Lead Status', 'real-estate-crm' ),
+                    'singular_name' => __( 'Lead Status', 'real-estate-crm' ),
+                    'search_items'  => __( 'Search Lead Status', 'real-estate-crm' ),
+                    'all_items'     => __( 'All Lead Statuses', 'real-estate-crm' ),
+                    'edit_item'     => __( 'Edit Lead Status', 'real-estate-crm' ),
+                    'update_item'   => __( 'Update Lead Status', 'real-estate-crm' ),
+                    'add_new_item'  => __( 'Add New Lead Status', 'real-estate-crm' ),
+                    'new_item_name' => __( 'New Lead Status Name', 'real-estate-crm' ),
+                    'menu_name'     => __( 'Lead Status', 'real-estate-crm' ),
+                ],
+                'public'            => true,
+                'show_ui'           => true,
+                'show_admin_column' => true,
+                'hierarchical'      => true,
+                'query_var'         => true,
+                'rewrite'           => ['slug' => 'lead-status'],
+                'show_in_rest'      => true,
+                'meta_box_cb'       => [__CLASS__, 'lead_status_radio_meta_box'],
+            ]
+        );
     }
 
     public static function lead_status_radio_meta_box( $post, $box ) {
@@ -52,7 +54,7 @@ class Lead_Taxonomies {
             </ul>
         </div>
         <?php
-    }    
+    }
 
     public static function register_status_terms() {
         $terms = [

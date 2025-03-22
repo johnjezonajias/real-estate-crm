@@ -8,9 +8,11 @@ class Lead_Init {
         require_once RECRM_PATH . 'includes/lead/class-lead-cpt.php';
         require_once RECRM_PATH . 'includes/lead/class-lead-meta.php';
         require_once RECRM_PATH . 'includes/lead/class-lead-taxonomies.php';
+        require_once RECRM_PATH . 'includes/lead/class-lead-admin.php';
 
         Lead_CPT::init();
         Lead_Meta::init();
         Lead_Taxonomies::init();
+        Lead_Admin::init();
     }
 }

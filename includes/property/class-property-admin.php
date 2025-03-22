@@ -10,11 +10,16 @@ class Property_Admin {
     }
 
     public static function add_custom_columns( $columns ) {
-        $columns['developer-name']      = __( 'Developer', 'real-estate-crm' );
-        $columns['listing-price']       = __( 'Price (PHP)', 'real-estate-crm' );
-        $columns['availability-status'] = __( 'Availability', 'real-estate-crm' );
+        $ordered_columns = [
+            'cb'                   => $columns['cb'],
+            'title'                => $columns['title'],
+            'developer-name'       => __( 'Developer', 'real-estate-crm' ),
+            'listing-price'        => __( 'Price (PHP)', 'real-estate-crm' ),
+            'availability-status'  => __( 'Availability', 'real-estate-crm' ),
+            'date'                 => $columns['date'],
+        ];
 
-        return $columns;
+        return $ordered_columns;
     }
 
     public static function custom_column_content( $column, $post_id ) {
@@ -23,7 +28,9 @@ class Property_Admin {
         }
 
         if ( $column == 'listing-price' ) {
-            echo get_post_meta( $post_id, '_listing_price', true ) ?: '0';
+            $price = get_post_meta( $post_id, '_listing_price', true );
+            $price = is_numeric($price) ? number_format( ( float ) $price, 2 ) : '0.00';
+            echo $price;
         }
 
         if ( $column == 'availability-status' ) {
