@@ -9,6 +9,7 @@ class Property_Data {
             'listing_price',
             'location',
             'address',
+            'property_description',
             'google_maps_link',
             'year_built',
             'availability_status',

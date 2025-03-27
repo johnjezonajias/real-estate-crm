@@ -181,7 +181,11 @@ class API_Properties {
     
         if ( isset( $params['meta'] ) && is_array( $params['meta'] ) ) {
             foreach ( $params['meta'] as $key => $value ) {
-                update_post_meta( $post_id, "_$key", sanitize_text_field( $value ) );
+                if ( $key === 'property_description' ) {
+                    update_post_meta( $post_id, "_$key", wp_kses_post( $value ) );
+                } else {
+                    update_post_meta( $post_id, "_$key", sanitize_text_field( $value ) );
+                }
             }
         }
     

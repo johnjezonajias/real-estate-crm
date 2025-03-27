@@ -38,6 +38,7 @@ class Property_Meta {
                         'reserved'
                     ]
                 ],
+                'property_description'  => ['label' => 'Property Description/Notes', 'type' => 'textarea'],
             ],
             'Property Specifications' => [
                 'lot_area'              => ['label' => 'Lot Area (sqm)', 'type' => 'number'],
@@ -144,10 +145,10 @@ class Property_Meta {
                     case 'text':
                     case 'number':
                     case 'url':
-                        echo "<input type='{$field['type']}' id='$key' name='$key' value='" . esc_attr( $value ) . "' />";
+                        echo "<input type='{$field['type']}' id='$key' name='$key' value='" . esc_attr( $value ) . "' class='large-text' />";
                         break;
                     case 'select':
-                        echo "<select id='$key' name='$key'>";
+                        echo "<select id='$key' name='$key' class='regular-text'>";
                         foreach ( $field['options'] as $option ) {
                             $selected = ( $value == $option ) ? 'selected' : '';
                             echo "<option value='$option' $selected>$option</option>";
@@ -159,7 +160,7 @@ class Property_Meta {
                         echo "<input type='checkbox' id='$key' name='$key' value='1' $checked />";
                         break;
                     case 'textarea':
-                        echo "<textarea id='$key' name='$key'>" . esc_textarea( $value ) . "</textarea>";
+                        echo "<textarea id='$key' name='$key' class='large-text' rows='10'>" . esc_textarea( $value ) . "</textarea>";
                         break;
                 }
 
@@ -219,6 +220,9 @@ class Property_Meta {
                         $value = sanitize_text_field( $_POST[$key] );
                         update_post_meta( $post_id, "_$key", $value );
                     }
+                } elseif ( $field['type'] === 'textarea' ) {
+                    $value = wp_kses_post( $_POST[$key] );
+                    update_post_meta( $post_id, "_$key", $value );
                 } else {
                     if ( isset( $_POST[$key] ) ) {
                         $value = sanitize_text_field( $_POST[$key] );
