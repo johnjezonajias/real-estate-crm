@@ -33,9 +33,11 @@ class Property_Meta {
                     'label'     => 'Availability Status', 
                     'type'      => 'select', 
                     'options'   => [
-                        'available', 
-                        'sold', 
-                        'reserved'
+                        'available'      => 'Available',
+                        'reserved'       => 'Reserved',
+                        'pre-selling'    => 'Pre-selling',
+                        'under-contract' => 'Under Contract',
+                        'sold'           => 'Sold',
                     ]
                 ],
                 'property_description'  => ['label' => 'Property Description/Notes', 'type' => 'textarea'],
@@ -51,9 +53,10 @@ class Property_Meta {
                     'label'     => 'Furnishing Status', 
                     'type'      => 'select', 
                     'options'   => [
-                        'fully furnished', 
-                        'semi-furnished', 
-                        'unfurnished'
+                        'fully-furnished'  => 'Fully Furnished',
+                        'semi-furnished'   => 'Semi-furnished',
+                        'unfurnished'      => 'Unfurnished',
+                        'not-applicable'   => 'Not Applicable',
                     ]
                 ],
             ],
@@ -70,10 +73,12 @@ class Property_Meta {
                     'label'     => 'Internet Connection', 
                     'type'      => 'select', 
                     'options'   => [
-                        'fiber', 
-                        'dsl', 
-                        'satellite',
-                        'none'
+                        'fiber-cable'    => 'Fiber Cable', 
+                        'dsl-line'       => 'DSL Line', 
+                        'satellite'      => 'Satellite',
+                        'prepaid-data'   => 'Prepaid Data',
+                        'no-reception'   => 'No Reception',
+                        'not-applicable' => 'Not Applicable',
                     ]
                 ],
                 'security_features'     => ['label' => 'Security Features', 'type' => 'text'],
