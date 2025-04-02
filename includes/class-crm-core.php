@@ -7,6 +7,7 @@ use Real_Estate_CRM\API\API_Init;
 use Real_Estate_CRM\Agent\Agent_Init;
 use Real_Estate_CRM\Property\Property_Init;
 use Real_Estate_CRM\Lead\Lead_Init;
+use Real_Estate_CRM\Forms\Forms_Init;
 
 defined( 'ABSPATH' ) || exit;
 
@@ -35,5 +36,9 @@ class CRM_Core {
         // Initialize lead modules.
         require_once RECRM_PATH . 'includes/lead/class-lead-init.php';
         Lead_Init::init();
+
+        // Initialize CF7 forms.
+        require_once RECRM_PATH . 'includes/forms/class-forms-init.php';
+        Forms_Init::init();
     }
 }
